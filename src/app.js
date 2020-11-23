@@ -1,13 +1,13 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './todo.scss';
+import ToDo from './components/todo/todo';
+
 import React from 'react';
 
-import ToDo from './components/todo/todo.js';
-
-export default class App extends React.Component {
-  render() {
-    return (
-      <>
-        <ToDo />
-      </>
-    );
-  }
+export default function App() {
+  return (
+    <>
+      <ToDo />
+    </>
+  );
 }
