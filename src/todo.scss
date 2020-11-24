@@ -53,21 +53,16 @@ nav {
     padding: 0;
 
     > div {
-      align-items: center;
-      display: flex;
-      flex-direction: row;
-      font-size: 0.75em;
+      // align-items: center;
+      // display: flex;
+      // flex-direction: row;
+      // font-size: 0.75em;
 
       &.complete-true {
         text-decoration: line-through;
         background: pink !important;
       }
 
-      background: #28a745;
-      cursor: pointer;
-      &:hover {
-        background: pink;
-      }
       span,
       input {
         border: 0.5px solid #eee;
