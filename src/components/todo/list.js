@@ -1,12 +1,9 @@
 import React, { useContext, useEffect } from 'react';
+import _ from 'lodash';
 import { SettingsContext } from '../../context/settings';
-import { ListGroup } from 'react-bootstrap';
+import { ListGroup, Pagination } from 'react-bootstrap';
 function List(props) {
   const value = useContext(SettingsContext);
-  function displayOrNot(item) {
-    if (value.hideCompleted) if (item.complete) return 'd-none';
-    return '';
-  }
   function sortList(list) {
     return list.sort(function (a, b) {
       // console.log('sorting');
@@ -28,16 +25,69 @@ function List(props) {
       }
     });
   }
+  function handlePageChange(page) {
+    console.log(value.currentPage);
+    value.setCurrentPage(page);
+  }
   let list = sortList(props.list);
+  list = list.filter(item => {
+    if (value.hideCompleted) if (item.complete) return false;
+    return true;
+  });
+
+  let pageList = list.slice(
+    (value.currentPage - 1) * value.itemsPerPage,
+    value.currentPage * value.itemsPerPage
+  );
   // console.log('fdrom list componennt', list);
+
+  let pages = [];
+  let pagesCount = list.length / value.itemsPerPage;
+  console.log(pagesCount);
+  for (let number = 1; number <= pagesCount; number++) {
+    pages.push(
+      <Pagination.Item
+        key={number}
+        active={number === value.currentPage}
+        onClick={() => {
+          handlePageChange(number);
+        }}
+      >
+        {number}
+      </Pagination.Item>
+    );
+  }
+  if (pages.length > 1 && value.currentPage !== pages.length) {
+    pages.push(
+      <Pagination.Next
+        key="next"
+        onClick={() => {
+          value.setCurrentPage(value.currentPage + 1);
+        }}
+      />
+    );
+  }
+  if (pages.length > 1 && value.currentPage !== 1) {
+    pages.unshift(
+      <Pagination.Prev
+        key="prev"
+        onClick={() => {
+          value.setCurrentPage(value.currentPage - 1);
+        }}
+      />
+    );
+  }
+  const paginationBasic = (
+    <div>
+      <Pagination>{pages}</Pagination>
+    </div>
+  );
   return (
     <>
       <ListGroup className="mine-list-group">
-        {list.map(item => (
+        {pageList.map(item => (
           <ListGroup.Item
-            className={`complete-${
-              item.complete.toString() + ' ' + displayOrNot(item)
-            } , list-group-item-action`}
+            className={`complete-${item.complete.toString()} , list-group-item-action`}
             key={item._id}
           >
             {/* {console.log(item)} */}
@@ -70,6 +120,7 @@ function List(props) {
           </ListGroup.Item>
         ))}
       </ListGroup>
+      {paginationBasic}
     </>
   );
 }

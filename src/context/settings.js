@@ -6,7 +6,7 @@ export default function SettingsProvider(props) {
   const [hideCompleted, setHideCompleted] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(3);
   const [sort, setSort] = useState('text');
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const state = {
     hideCompleted,
     setHideCompleted,
