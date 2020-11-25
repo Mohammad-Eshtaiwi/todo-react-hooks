@@ -1,12 +1,15 @@
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 
 import { Container, Row, Col, Navbar } from 'react-bootstrap';
+import { SettingsContext } from '../../context/settings';
 import TodoForm from './form.js';
 import TodoList from './list.js';
+import Settings from './settings';
 const todoAPI = 'https://api-js401.herokuapp.com/api/v1/todo';
 function TodoHooks() {
   // create list state
+  const value = useContext(SettingsContext);
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const addItem = item => {
@@ -24,6 +27,27 @@ function TodoHooks() {
       })
       .catch(console.error);
   };
+  function sortList(list) {
+    return list.sort(function (a, b) {
+      console.log('sorting');
+      if (value.sort === 'text') {
+        var nameA = a[value.sort].toUpperCase(); // ignore upper and lowercase
+        var nameB = b[value.sort].toUpperCase(); // ignore upper and lowercase
+        if (nameA < nameB) {
+          return -1;
+        }
+        if (nameA > nameB) {
+          return 1;
+        }
+
+        // names must be equal
+        return 0;
+      }
+      if (value.sort === 'difficulty') {
+        return a[value.sort] - b[value.sort];
+      }
+    });
+  }
   const toggleComplete = id => {
     let item = list.filter(i => i._id === id)[0] || {};
 
@@ -47,19 +71,7 @@ function TodoHooks() {
     const newList = list.filter(listItem => realItem._id !== listItem._id);
     setList(newList);
     console.log(realItem._id);
-    // fetch(todoAPI + '/' + realItem._id, {
-    //   method: 'delete',
-    //   mode: 'cors',
-    //   cache: 'no-cache',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: item,
-    // })
-    //   .then(response => response.json())
-    //   .then(() => {
-    //     const newList = list.filter(listItem => item.id !== listItem);
-    //     setList(newList);
-    //   })
-    //   .catch(console.error);
+
     axios
       .delete(todoAPI + '/' + realItem._id)
       .then(response => {
@@ -69,19 +81,18 @@ function TodoHooks() {
   };
 
   const getTodoItems = () => {
-    // fetch(todoAPI, {
-    //   method: 'get',
-    //   mode: 'cors',
-    // })
-    //   .then(data => data.json())
-    //   .then(data => setList(data.results))
-    //   .catch(console.error);
     axios.get(todoAPI).then(response => {
       setIsLoading(false);
+      // setList(sortList(response.data.results));
       setList(response.data.results);
     });
   };
   useEffect(getTodoItems, []);
+  // useEffect(() => {
+  //   console.log(value.sort);
+  //   sortList(list);
+  //   console.log(list);
+  // }, [value.sort]);
   return (
     <>
       <header>
@@ -108,6 +119,7 @@ function TodoHooks() {
               <TodoForm handleSubmit={addItem} />
             </Col>
             <Col>
+              <Settings />
               {isLoading ? (
                 <img
                   src="https://media0.giphy.com/media/2WjpfxAI5MvC9Nl8U7/200_d.gif"
