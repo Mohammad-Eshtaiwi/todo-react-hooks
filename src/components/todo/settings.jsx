@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import { SettingsContext } from '../../context/settings';
 import { Form } from 'react-bootstrap';
 export default function Settings() {
