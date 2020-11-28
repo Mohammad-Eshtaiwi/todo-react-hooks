@@ -1,17 +1,22 @@
 import axios from 'axios';
 import React, { useState, useEffect, useContext } from 'react';
-
-import { Container, Row, Col, Navbar } from 'react-bootstrap';
-import { SettingsContext } from '../../context/settings';
+import { If, Else, Then } from 'react-if';
+import { Container, Row, Col, Navbar, Form, FormControl, Button } from 'react-bootstrap';
+import { LoginContext } from '../../context/auth';
 import TodoForm from './form.js';
 import TodoList from './list.js';
 import Settings from './settings';
+import useForm from './hooks/useForm';
 const todoAPI = 'https://api-js401.herokuapp.com/api/v1/todo';
 function TodoHooks() {
   // create list state
-  const value = useContext(SettingsContext);
+  const value = useContext(LoginContext);
+  console.log(value);
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [values, handleInputChange, handleSubmit] = useForm(handleLogin);
   const addItem = item => {
     console.log(item);
     item.due = new Date();
@@ -27,27 +32,7 @@ function TodoHooks() {
       })
       .catch(console.error);
   };
-  function sortList(list) {
-    return list.sort(function (a, b) {
-      console.log('sorting');
-      if (value.sort === 'text') {
-        var nameA = a[value.sort].toUpperCase(); // ignore upper and lowercase
-        var nameB = b[value.sort].toUpperCase(); // ignore upper and lowercase
-        if (nameA < nameB) {
-          return -1;
-        }
-        if (nameA > nameB) {
-          return 1;
-        }
 
-        // names must be equal
-        return 0;
-      }
-      if (value.sort === 'difficulty') {
-        return a[value.sort] - b[value.sort];
-      }
-    });
-  }
   const toggleComplete = id => {
     let item = list.filter(i => i._id === id)[0] || {};
 
@@ -87,51 +72,98 @@ function TodoHooks() {
       setList(response.data.results);
     });
   };
-  useEffect(getTodoItems, []);
-  // useEffect(() => {
-  //   console.log(value.sort);
-  //   sortList(list);
-  //   console.log(list);
-  // }, [value.sort]);
+  useEffect(() => {
+    getTodoItems();
+    if (!value.loggedIn) value.setUser(false);
+  }, []);
+  function handleLogin(e) {
+    e.preventDefault();
+    console.log(e);
+    e.target.reset();
+    let { username, password } = values;
+    setUsername(username);
+    setPassword(password);
+    value.login(username, password);
+  }
   return (
     <>
       <header>
-        <Container className="mb-3">
-          <Navbar bg="info">
-            <Navbar.Brand href="#home">Brand link</Navbar.Brand>
+        <Container className="mb-3" fluid>
+          <Navbar bg="info" className="d-flex justify-content-between">
+            <Navbar.Brand href="#home">ToDo List</Navbar.Brand>
+            <If condition={!value.loggedIn}>
+              <Then>
+                <Form
+                  inline
+                  onSubmit={e => {
+                    console.log('hi');
+                    handleSubmit(e);
+                  }}
+                >
+                  <FormControl
+                    type="text"
+                    placeholder="username"
+                    className="mr-sm-2"
+                    name="username"
+                    onChange={e => {
+                      handleInputChange(e);
+                    }}
+                  />
+                  <FormControl
+                    type="text"
+                    placeholder="password"
+                    className="mr-sm-2"
+                    name="password"
+                    onChange={e => {
+                      handleInputChange(e);
+                    }}
+                  />
+                  <Button variant="outline-light" type="submit">
+                    login
+                  </Button>
+                </Form>
+              </Then>
+              <Else>
+                <Button variant="outline-light" onClick={value.logout}>
+                  logout
+                </Button>
+              </Else>
+            </If>
           </Navbar>
         </Container>
-        <Container>
-          <Row>
-            <Col>
+        <Container></Container>
+      </header>
+
+      <If condition={value.user}>
+        <Then>
+          <section className="todo">
+            <Container>
               <h2 className="text-white bg-dark">
                 There are {list.filter(item => !item.complete).length} Items To Complete
               </h2>
-            </Col>
-          </Row>
-        </Container>
-      </header>
-
-      <section className="todo">
-        <Container>
-          <Row>
-            <Col>
-              <TodoForm handleSubmit={addItem} />
-            </Col>
-            <Col>
-              <Settings />
-              {isLoading ? (
-                <img
-                  src="https://media0.giphy.com/media/2WjpfxAI5MvC9Nl8U7/200_d.gif"
-                  alt="loading"
-                />
-              ) : (
-                <TodoList list={list} toggleComplete={toggleComplete} deleteItem={deleteItem} />
-              )}
-            </Col>
-          </Row>
-        </Container>
-      </section>
+              <Row>
+                {console.log(value.capabilities)}
+                <If condition={value.capabilities.includes('create')}>
+                  <Col>
+                    <TodoForm handleSubmit={addItem} />
+                  </Col>
+                </If>
+                <Col>
+                  <Settings />
+                  {isLoading ? (
+                    <img
+                      src="https://media0.giphy.com/media/2WjpfxAI5MvC9Nl8U7/200_d.gif"
+                      alt="loading"
+                    />
+                  ) : (
+                    <TodoList list={list} toggleComplete={toggleComplete} deleteItem={deleteItem} />
+                  )}
+                </Col>
+              </Row>
+            </Container>
+          </section>
+        </Then>
+      </If>
     </>
   );
 }

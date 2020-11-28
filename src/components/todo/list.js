@@ -1,9 +1,11 @@
-import React, { useContext, useEffect } from 'react';
-import _ from 'lodash';
+import React, { useContext } from 'react';
+import { If } from 'react-if';
 import { SettingsContext } from '../../context/settings';
+import { LoginContext } from '../../context/auth';
 import { ListGroup, Pagination } from 'react-bootstrap';
 function List(props) {
   const value = useContext(SettingsContext);
+  const { capabilities } = useContext(LoginContext);
   function sortList(list) {
     return list.sort(function (a, b) {
       // console.log('sorting');
@@ -23,6 +25,7 @@ function List(props) {
       if (value.sort === 'difficulty') {
         return a[value.sort] - b[value.sort];
       }
+      return 0;
     });
   }
   function handlePageChange(page) {
@@ -98,22 +101,26 @@ function List(props) {
                 </span>
                 <span>assignee:{item.assignee}</span>
               </div>
-              <button
-                data-item={JSON.stringify(item)}
-                onClick={e => {
-                  props.deleteItem(e.target.dataset.item);
-                }}
-              >
-                X
-              </button>
-              <button
-                data-id={item._id}
-                onClick={e => {
-                  props.toggleComplete(e.target.dataset.id);
-                }}
-              >
-                &#9745;
-              </button>
+              <If condition={capabilities.includes('delete')}>
+                <button
+                  data-item={JSON.stringify(item)}
+                  onClick={e => {
+                    props.deleteItem(e.target.dataset.item);
+                  }}
+                >
+                  X
+                </button>
+              </If>
+              <If condition={capabilities.includes('update')}>
+                <button
+                  data-id={item._id}
+                  onClick={e => {
+                    props.toggleComplete(e.target.dataset.id);
+                  }}
+                >
+                  &#9745;
+                </button>
+              </If>
             </div>
             <p className="mb-1">{item.text}</p>
             <small>difficulty:{item.difficulty}</small>

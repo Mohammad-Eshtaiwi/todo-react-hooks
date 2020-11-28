@@ -8,6 +8,7 @@ const useForm = cb => {
     cb(e);
   };
   const handleChange = e => {
+    console.log([e.target.name]);
     setState({ ...state, [e.target.name]: e.target.value });
   };
   return [state, handleChange, handleSubmit];
